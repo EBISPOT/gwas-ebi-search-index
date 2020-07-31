@@ -4,6 +4,7 @@ import sys
 import os
 import argparse
 import subprocess
+import json
 from subprocess import Popen, PIPE
 from datetime import date
 from gwas_db_connect import DBConnection
@@ -63,8 +64,8 @@ class ebiSearchIndexData(object):
                 data = cursor.fetchall()
                 # print("Num of Studies: ", len(study_data))
                 
-                # Get first 10 rows
-                self.data = data[:10]
+                # Get first X rows
+                self.data = data[:2]
                 
                 # Get row at index 99 in list
                 # self.data = data[99:100]
@@ -121,13 +122,53 @@ class ebiSearchIndexData(object):
         header = self.__create_data_header()
         print("** Header: ", header)
 
-        data = {"entries": [{"fields": [], "cross_references": []}]}
-
+        # dataObj = {"entries": [{"fields": [], "cross_references": []}]}
+        entries_list = []
+        # entries_dict = {"entries": ""}
 
         # print(self.data)
-        # for row in self.data:
-        #     # print("Row: ", row[7:])
-        #     print("Row: ", row)
+        for row in self.data:
+            # print("Row: ", row[7:])
+            print("\nRow: ", row)
+            
+            entry = {"fields": "", "cross_references": ""}
+            fields_list = []
+            id_field = {"name": "id", "value": ""}
+            name_field = {"name": "name", "value": ""}
+            description_field = {"name": "description", "value": ""}
+            cross_references_list = []
+            cross_references_dict = {}
+
+            # Populate individual "fields" dictionaries
+            id_field['value'] = row[2]
+            print("** ID Field: ", id_field)
+
+            name_field['value'] = row[6]
+
+
+            # Add "id_field" dictionary to "fields_list"
+            fields_list.append(id_field)
+            fields_list.append(name_field)
+            print("** FL: ", fields_list)
+
+            # Add "fields_list" list to "entry" dictionary
+            entry['fields'] = fields_list
+            print("** Entry: ", entry)
+
+
+            # Add entry dictionary to "entries_list"
+            entries_list.append(entry)
+
+
+        print("\n\n** All Entry List: ", entries_list)
+
+        # entries_dict['entries'] = entries_list
+        # print("\n\n** All Entries: ", entries_dict)
+
+        header['entries'] = entries_list
+        print("\n\n** All Data: ", header)
+
+        print("\n\nAll Data JSON: ", json.dumps(header))
 
 
     def __create_data_header(self):
@@ -142,7 +183,7 @@ class ebiSearchIndexData(object):
             "release": "22-04-2020",
             "release_date": "22-04-2020"}
         """
-        header = {"entry_count": len(self.data), "name": "GWAS Catalog", "release": "", "release_date": ""}
+        header = {"entry_count": len(self.data), "name": "GWAS Catalog", "release": "", "release_date": "", "entries": ""}
                 
         date_today = date.today().strftime('%d-%m-%Y')
         header['release'] = date_today
