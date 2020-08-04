@@ -127,9 +127,12 @@ class ebiSearchIndexData(object):
         # entries_dict = {"entries": ""}
 
         # print(self.data)
-        for row in self.data:
+        for pubmed_Id, study_Id, accession_Id, initial_sample_size, last_name, initials, reported_trait, efo_short_form in self.data:
+
+        # for row in self.data:
             # print("Row: ", row[7:])
-            print("\nRow: ", row)
+            # print("\nRow: ", row)
+
             
             entry = {"fields": "", "cross_references": ""}
             fields_list = []
@@ -140,15 +143,19 @@ class ebiSearchIndexData(object):
             cross_references_dict = {}
 
             # Populate individual "fields" dictionaries
-            id_field['value'] = row[2]
+            id_field['value'] = accession_Id
             print("** ID Field: ", id_field)
 
-            name_field['value'] = row[6]
+            name_field['value'] = 'GWAS: ' + reported_trait + ' (' + accession_Id + ')'
+
+
+            description_field['value'] = 'Study of ' + initial_sample_size + ' published by ' + last_name + ' ' + initials + ', PMID: ' + pubmed_Id
 
 
             # Add "id_field" dictionary to "fields_list"
             fields_list.append(id_field)
             fields_list.append(name_field)
+            fields_list.append(description_field)
             print("** FL: ", fields_list)
 
             # Add "fields_list" list to "entry" dictionary
