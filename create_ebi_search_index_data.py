@@ -132,48 +132,58 @@ class ebiSearchIndexData(object):
         # for row in self.data:
             # print("Row: ", row[7:])
             # print("\nRow: ", row)
-
             
             entry = {"fields": "", "cross_references": ""}
             fields_list = []
             id_field = {"name": "id", "value": ""}
             name_field = {"name": "name", "value": ""}
             description_field = {"name": "description", "value": ""}
+            
             cross_references_list = []
-            cross_references_dict = {}
+            pmid_xref = {"dbkey": "", "dbname": "PUBMED"}
+            efo_xref = {"dbkey": "", "dbname": "EFO"}
 
+            #############################################
             # Populate individual "fields" dictionaries
+            #############################################
             id_field['value'] = accession_Id
-            print("** ID Field: ", id_field)
 
             name_field['value'] = 'GWAS: ' + reported_trait + ' (' + accession_Id + ')'
 
-
             description_field['value'] = 'Study of ' + initial_sample_size + ' published by ' + last_name + ' ' + initials + ', PMID: ' + pubmed_Id
 
-
-            # Add "id_field" dictionary to "fields_list"
+            # Add to "fields_list"
             fields_list.append(id_field)
             fields_list.append(name_field)
             fields_list.append(description_field)
-            print("** FL: ", fields_list)
 
             # Add "fields_list" list to "entry" dictionary
             entry['fields'] = fields_list
-            print("** Entry: ", entry)
 
+
+            ######################################################
+            # Populate individual "cross_references" dictionaries
+            ######################################################
+            pmid_xref['dbkey'] = pubmed_Id
+            efo_xref['dbkey'] = efo_short_form
+
+            # Add xrefs to "cross_references" list
+            cross_references_list.append(pmid_xref)
+            cross_references_list.append(efo_xref)            
+
+            entry['cross_references'] = cross_references_list
 
             # Add entry dictionary to "entries_list"
             entries_list.append(entry)
 
 
-        print("\n\n** All Entry List: ", entries_list)
+        # print("\n\n** All Entry List: ", entries_list)
 
         # entries_dict['entries'] = entries_list
         # print("\n\n** All Entries: ", entries_dict)
 
         header['entries'] = entries_list
-        print("\n\n** All Data: ", header)
+        # print("\n\n** All Data: ", header)
 
         print("\n\nAll Data JSON: ", json.dumps(header))
 
