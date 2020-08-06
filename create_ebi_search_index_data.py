@@ -54,9 +54,10 @@ class ebiSearchIndexData(object):
 
     studiesMissingData = []
 
-    def __init__(self, connection, database, outputDir):
+    def __init__(self, connection, database, outputDir, logsDir):
         self.database = database
         self.outputDir = outputDir
+        self.logsDir = logsDir
 
         try:
             with contextlib.closing(connection.cursor()) as cursor:
@@ -68,13 +69,13 @@ class ebiSearchIndexData(object):
                 # print('Num of Studies: ', len(study_data))
                 
                 # Get first X rows
-                # self.data = data[:3]
+                self.data = data[:3]
                 
                 # Get row at index 99 in list
                 # self.data = data[99:100]
                 
                 # Get all data
-                self.data = data
+                # self.data = data
 
 
                 #####################
@@ -158,19 +159,19 @@ class ebiSearchIndexData(object):
             # Populate individual 'fields' dictionaries
             #############################################
             if accession_Id is None:
-                self.studiesMissingData.append('PMID: '+pmid)
+                self.studiesMissingData.append('PMID: ' + pmid)
                 continue
             id_field['value'] = accession_Id
-            url_published_field['value'] = url_published_field_prefix+accession_Id
+            url_published_field['value'] = url_published_field_prefix + accession_Id
 
 
             if reported_trait is None:
-                self.studiesMissingData.append('Accession: '+accession_Id)
+                self.studiesMissingData.append('Accession: ' + accession_Id)
                 continue
             name_field['value'] = 'GWAS: ' + reported_trait + ' (' + accession_Id + ')'
 
             if initial_sample_size is None:
-                self.studiesMissingData.append('Accession: '+accession_Id)
+                self.studiesMissingData.append('Accession: ' + accession_Id)
                 description_field['value'] = 'Study published by ' + author_fullname + ', PMID: ' + pmid
                 # TODO: Add to error list to alert curators
             else:
@@ -178,18 +179,18 @@ class ebiSearchIndexData(object):
 
 
             if title is None:
-                self.studiesMissingData.append('Accession: '+accession_Id)
+                self.studiesMissingData.append('Accession: ' + accession_Id)
                 continue
             publication_title_field['value'] = title
 
             if journal_name is None:
-                self.studiesMissingData.append('Accession: '+accession_Id)
+                self.studiesMissingData.append('Accession: ' + accession_Id)
                 continue
             journal_name_field['value'] = journal_name
 
 
             if date is None:
-                self.studiesMissingData.append('Accession: '+accession_Id)
+                self.studiesMissingData.append('Accession: ' + accession_Id)
                 continue
             publication_date_field['value'] = date.strftime('%Y/%m/%d')
 
@@ -242,9 +243,16 @@ class ebiSearchIndexData(object):
         # print('\n\n** All Data: ', header)
 
 
+        ###############
+        # Save files
+        ###############
         print('\n\nAll Data JSON: ', json.dumps(header))
+        with open(outputDir + 'studies.json', 'w') as file:
+            json.dump(header, file)
 
         print("\n\n** Studies Missing data: ", self.studiesMissingData)
+        with open(logsDir + 'logs.txt', 'w') as log_file:
+            print(self.studiesMissingData, file=log_file)
 
 
     def __create_data_header(self):
@@ -275,17 +283,24 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--releaseDB', type=str, help='Name of the database for extracting study data.')
     parser.add_argument('--outputDir', type=str, help='Path to data directory.')
+    parser.add_argument('--logsDir', type=str, help='Path to logs directory.')
     # parser.add_argument('--emailRecipient', type=str, help='Email address where the notification is sent.')
     args = parser.parse_args()
 
     database = args.releaseDB
     outputDir = args.outputDir
+    logsDir = args.logsDir
     # emailRecipient = args.emailRecipient
 
     # Check if output directory exists:
-    # if not os.path.isdir(outputDir):
-    #     print('[Error] No valid staging directory provided. Exiting.')
-    #     sys.exit(1)
+    if not os.path.isdir(outputDir):
+        print('[Error] No valid data directory provided. Exiting.')
+        sys.exit(1)
+
+    # Check if logs directory exists:
+    if not os.path.isdir(logsDir):
+        print('[Error] No valid logs directory provided. Exiting.')
+        sys.exit(1)
 
 
     # Open connection:
@@ -293,7 +308,7 @@ if __name__ == '__main__':
     connection = db_object.connection
 
     # Get published studies from database
-    ebiSearchIndexDataObj = ebiSearchIndexData(connection, database, outputDir)
+    ebiSearchIndexDataObj = ebiSearchIndexData(connection, database, outputDir, logsDir)
 
     # Check data integrity
     ebiSearchIndexDataObj.data_check()
