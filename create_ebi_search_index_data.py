@@ -66,24 +66,13 @@ class ebiSearchIndexData(object):
                 ######################
                 cursor.execute(self.getDataSQL)
                 data = cursor.fetchall()
-                # print('Num of Studies: ', len(study_data))
-                
-                # Get first X rows
-                self.data = data[:3]
-                
-                # Get row at index 99 in list
-                # self.data = data[99:100]
-                
-                # Get all data
-                # self.data = data
-
+                self.data = data
 
                 #####################
                 # Get total studies
                 #####################
                 cursor.execute(self.getTotalStudiesSQL)
                 total_studies = cursor.fetchone()[0]
-                # print('Total studies: ', total_studies)
                 self.total_studies = total_studies
 
         except(cx_Oracle.DatabaseError, exception):
@@ -108,9 +97,9 @@ class ebiSearchIndexData(object):
                 ####################################
                 cursor.execute(self.findMissingStudiesSQL)
                 incorrect_studies = cursor.fetchall()
-                print(incorrect_studies)
-                # QUESTION: Should a mismatch in study annotations cause Data Release or this script to Fail? The reported trait is 
-                # used in the name of an entry in the EBI Search Index snippet
+               
+                with open(logsDir + 'missingStudies.txt', 'w') as file:
+                    print(incorrect_studies, file=file)
                 # TODO: Send email to gwas-curators with information about incorrect_studies
         except(cx_Oracle.DatabaseError, exception):
             print(exception)
@@ -123,15 +112,11 @@ class ebiSearchIndexData(object):
             JSON file
         '''
         
-        header = self.__create_data_header()
-        # print('** Header: ', header)
+        dataFileObj = self.__populate_header_data()
 
         entries_list = []
 
         for pmid, title, date, journal_name, study_Id, accession_Id, initial_sample_size, author_fullname, reported_trait, efo_short_form in tqdm(self.data):
-            print('\n\n** Row:', pmid, title, date, journal_name, study_Id, accession_Id, initial_sample_size, author_fullname, reported_trait, efo_short_form)
-
-
             #########################
             # Define local variables
             #########################        
@@ -170,6 +155,7 @@ class ebiSearchIndexData(object):
                 continue
             name_field['value'] = 'GWAS: ' + reported_trait + ' (' + accession_Id + ')'
 
+
             if initial_sample_size is None:
                 self.studiesMissingData.append('Accession: ' + accession_Id)
                 description_field['value'] = 'Study published by ' + author_fullname + ', PMID: ' + pmid
@@ -182,6 +168,7 @@ class ebiSearchIndexData(object):
                 self.studiesMissingData.append('Accession: ' + accession_Id)
                 continue
             publication_title_field['value'] = title
+
 
             if journal_name is None:
                 self.studiesMissingData.append('Accession: ' + accession_Id)
@@ -228,35 +215,28 @@ class ebiSearchIndexData(object):
 
             entry['cross_references'] = cross_references_list
 
-            print('** Entry: ', entry)
 
             # Add entry dictionary to 'entries_list'
             entries_list.append(entry)
 
 
-        # print('\n\n** All Entry List: ', entries_list)
-
-        # entries_dict['entries'] = entries_list
-        # print('\n\n** All Entries: ', entries_dict)
-
-        header['entries'] = entries_list
-        # print('\n\n** All Data: ', header)
+        # Add all entries to data file object 
+        dataFileObj['entries'] = entries_list
 
 
-        ###############
-        # Save files
-        ###############
-        print('\n\nAll Data JSON: ', json.dumps(header))
+        #############################
+        # Save data and log files
+        #############################
         with open(outputDir + 'studies.json', 'w') as file:
-            json.dump(header, file)
+            json.dump(dataFileObj, file)
 
-        print("\n\n** Studies Missing data: ", self.studiesMissingData)
+
         with open(logsDir + 'logs.txt', 'w') as log_file:
             print(self.studiesMissingData, file=log_file)
 
 
-    def __create_data_header(self):
-        '''Create data file header.
+    def __populate_header_data(self):
+        '''Add header data to dataFileObj.
 
         Returns:
             dict: Dictionary containing header data.
