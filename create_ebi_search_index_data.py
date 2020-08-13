@@ -145,13 +145,14 @@ class EbiSearchIndexData:
         
             fields_list = []
             id_field = {'name': 'id', 'value': ''}
-            name_field = {'name': 'name', 'value': ''}
+            reported_trait_field = {'name': 'reported_trait', 'value': ''}
             description_field = {'name': 'description', 'value': ''}
 
             url_published_field = {'name': 'url', 'value': ''}
             url_published_field_prefix = 'https://www.ebi.ac.uk/gwas/studies/'
             # url_prepublished_field_prefix = 'ftp://ftp.ebi.ac.uk/pub/databases/gwas/summary_statistics/'
 
+            first_author_field = {'name': 'first_author', 'value': ''}
             publication_title_field = {'name': 'publication_title', 'value': ''}
             journal_name_field = {'name': 'journal_name', 'value': ''}
             publication_date_field = {'name': 'publication_date', 'value': ''}
@@ -174,14 +175,20 @@ class EbiSearchIndexData:
             if reported_trait is None:
                 self.studies_missing_data.append('Accession: ' + accession_Id + ' is missing a reported trait annotation.')
                 continue
-            name_field['value'] = 'GWAS: ' + reported_trait + ' (' + accession_Id + ')'
+            reported_trait_field['value'] = reported_trait
 
 
             if initial_sample_size is None:
                 self.studies_missing_data.append('Accession: ' + accession_Id + ' is missing inital sample size information.')
                 description_field['value'] = 'Study published by ' + author_fullname + ', PMID: ' + pmid
             else:
-                description_field['value'] = 'Study of ' + initial_sample_size + ' published by ' + author_fullname + ', PMID: ' + pmid
+                description_field['value'] = 'Study of ' + initial_sample_size
+
+
+            if author_fullname is None:
+                self.studies_missing_data.append('Accession: ' + accession_Id + ' is missing the First Author name.')
+                continue
+            first_author_field['value'] = author_fullname
 
 
             if title is None:
@@ -204,8 +211,9 @@ class EbiSearchIndexData:
 
             # Add to 'fields_list'
             fields_list.append(id_field)
-            fields_list.append(name_field)
+            fields_list.append(reported_trait_field)
             fields_list.append(description_field)
+            fields_list.append(first_author_field)
             fields_list.append(publication_title_field)
             fields_list.append(journal_name_field)
             fields_list.append(publication_date_field)
