@@ -230,16 +230,22 @@ class EbiSearchIndexData:
                 pmid_xref['dbkey'] = ''
             else:
                 pmid_xref['dbkey'] = pmid
+                # Add xrefs to 'cross_references' list
+                cross_references_list.append(pmid_xref)
 
             if efo_xref is None:
                 efo_xref['dbkey'] = ''
             else:
-                efo_xref['dbkey'] = efo_short_form
+                # Account for studies that have more than one EFO trait assigned
+                for i in range((len(efo_short_form.split(', ')))):
+                    efo_xref['dbkey'] = efo_short_form.split(', ')[i]
+                    
+                    # Add xrefs to 'cross_references' list
+                    cross_references_list.append(efo_xref)
 
+                    # Clear dict
+                    efo_xref = {'dbkey': '', 'dbname': 'EFO'}
 
-            # Add xrefs to 'cross_references' list
-            cross_references_list.append(pmid_xref)
-            cross_references_list.append(efo_xref)            
 
             entry['cross_references'] = cross_references_list
 
