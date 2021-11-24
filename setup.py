@@ -10,4 +10,5 @@ setup(
     entry_points={
         "console_scripts": ['create-ebi-search-index-data = create_ebi_search_index_data:main']
     },
-    url='https://github.com/EBISPOT/gwas-ebi-search-index',
+    url='https://github.com/EBISPOT/gwas-ebi-search-index'
+)
