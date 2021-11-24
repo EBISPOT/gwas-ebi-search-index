@@ -372,8 +372,7 @@ class EbiSearchIndexData:
         s.quit()
 
 
-if __name__ == '__main__':
-
+def main():
     # Parsing command line arguments:
     parser = argparse.ArgumentParser()
     parser.add_argument('--release_db', type=str, help='Name of the database for extracting study data.')
@@ -419,6 +418,11 @@ if __name__ == '__main__':
 
     # Email report of missing curation information for studies as an attachment
     # ebi_search_index_data_obj.send_email_report_attachment('logs.txt', email_recipient)
+
+
+if __name__ == '__main__':
+    main()
+
 
 
 
