@@ -261,7 +261,7 @@ class EbiSearchIndexData:
         ###################
         # Save data file
         ###################
-        with open(output_dir + 'studies.json', 'w') as file:
+        with open(self.output_dir + 'studies.json', 'w') as file:
             json.dump(data_file_obj, file)
 
 
@@ -269,7 +269,7 @@ class EbiSearchIndexData:
         # Save log file
         ###################
         # TODO: Decide whether to send errors as file attachment or body of email 
-        with open(logs_dir + 'logs.txt', 'w') as log_file:
+        with open(self.logs_dir + 'logs.txt', 'w') as log_file:
             print(self.studies_missing_data, file=log_file)
 
         # Send email of errors as body of email
