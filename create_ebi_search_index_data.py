@@ -82,21 +82,21 @@ class EbiSearchIndexData:
                 total_studies = cursor.fetchone()[0]
                 self.total_studies = total_studies
 
-        except(cx_Oracle.DatabaseError, exception):
+        except cx_Oracle.DatabaseError as exception:
             print(exception)
 
 
-    def data_check(self):
+    def data_check(self, connection):
         ''' Confirm that total number of results from ALL_STUDY_DATA_SQL query match TOTAL_STUDIES_SQL query. 
         If not equal, there are studies that are missing reported or mapped trait annotations.
         '''
         if self.total_studies != len(self.data):
             print('[Warning] Number of studies do not match.')
             # self.studies_missing_data.append('[Warning] Number of studies do not match.')
-            self._find_data_errors()
+            self._find_data_errors(connection)
 
 
-    def _find_data_errors(self):
+    def _find_data_errors(self, connection):
         ''' Find studies that are missing reported trait or mapped trait annotations.'''
         try:
             with contextlib.closing(connection.cursor()) as cursor:
@@ -106,7 +106,7 @@ class EbiSearchIndexData:
                 cursor.execute(self.MISSING_STUDIES_SQL)
                 incorrect_studies = cursor.fetchall()
                
-                with open(logs_dir + 'missingStudies.txt', 'w') as file:
+                with open(self.logs_dir + 'missingStudies.txt', 'w') as file:
                     print(incorrect_studies, file=file)
                 
                 # TODO: Send email to gwas-curators with information about incorrect_studies
@@ -122,7 +122,7 @@ class EbiSearchIndexData:
                 # for accession in formatted_accession_list:
                 #     self.studies_missing_data.append(accession)
 
-        except(cx_Oracle.DatabaseError, exception):
+        except cx_Oracle.DatabaseError as exception:
             print(exception)
 
 
@@ -308,7 +308,7 @@ class EbiSearchIndexData:
         ''' Send email with information about studies missing curation information '''
         try:
             mailBody = 'Subject: Data Release report - Published studies missing data annotations\nTo: {}\n{}'.format(email_addresses, studies_with_errors)
-            p = Popen(["/usr/sbin/sendmail", "-t", "-oi", email_recipient], stdin=PIPE)
+            p = Popen(["/usr/sbin/sendmail", "-t", "-oi", self.email_recipient], stdin=PIPE)
             p.communicate(mailBody.encode('utf-8'))
         except OSError as e:
             print(e) 
@@ -405,7 +405,7 @@ def main():
     ebi_search_index_data_obj = EbiSearchIndexData(connection, database, output_dir, logs_dir, email_recipient)
 
     # Check data integrity
-    ebi_search_index_data_obj.data_check()
+    ebi_search_index_data_obj.data_check(connection)
 
     # Format data
     error_data = ebi_search_index_data_obj.format_data()
@@ -422,7 +422,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-
