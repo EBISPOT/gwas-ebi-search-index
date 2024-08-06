@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='gwas-ebi-search-index',
     description='GWAS search index document generator',
-    version='0.0.1',
+    version='0.0.2',
     packages=['.'],
     include_package_data=True,
     license='Apache License, Version 2.0',
